@@ -69,7 +69,7 @@ app.post("/api/book/:userId", async (req, res) => {
             .set({
               ...barberData,
               queue_no: count + 1,
-              token_no: count + 1,
+              token_no: count + 1000,
             });
           const set2 = db.collection("globalVariable")
             .doc("barber")
@@ -159,7 +159,7 @@ exports.pushNotification = functions.firestore
 
       if (count > 0) {
         //generate payload and fcmTokens
-        const firstFour = appointments.docs.slice(0, 5);
+        const firstFour = appointments.docs.slice(0, 4);
         const fcmTokens = [];
         const payload = {
           notification: {
