@@ -5,7 +5,7 @@ admin.initializeApp();
 const db = admin.firestore();
 const messaging = admin.messaging();
 
-const env = 'dev'
+const env = 'prod'
 
 const express = require("express");
 const cors = require("cors");
