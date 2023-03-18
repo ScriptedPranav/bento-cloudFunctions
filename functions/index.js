@@ -5,6 +5,8 @@ admin.initializeApp();
 const db = admin.firestore();
 const messaging = admin.messaging();
 
+const env = 'prod'
+
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -15,7 +17,7 @@ app.use(express.json());
 //Create User
 app.post("/api/user/signup/:userId", async(req,res) => {
   try {
-    await db.collection('users').doc(req.params.userId).set({
+    await db.collection(`bento/${env}/users`).doc(req.params.userId).set({
       ...req.body,
       timestamp: Timestamp.now()
     })
@@ -28,7 +30,7 @@ app.post("/api/user/signup/:userId", async(req,res) => {
 //Update User
 app.put('/api/user/update/:userId', async(req,res) => {
   try {
-    await db.collection('users').doc(req.params.userId).set({
+    await db.collection(`bento/${env}/users`).doc(req.params.userId).set({
       ...req.body
     },{merge:true})
     res.status(200).json("User Updated")
@@ -40,13 +42,13 @@ app.put('/api/user/update/:userId', async(req,res) => {
 //Book Barber Appointment
 app.post("/api/book/:userId", async (req, res) => {
   const appointment = await db
-    .collection("barber")
+    .collection(`bento/${env}/barber`)
     .doc(req.params.userId)
     .get();
   if (!appointment.data()) {
     try {
       const userData = await db
-        .collection("users")
+        .collection(`bento/${env}/users`)
         .doc(req.params.userId)
         .get();
       const user = userData.data();
@@ -59,19 +61,19 @@ app.post("/api/book/:userId", async (req, res) => {
         timestamp: Timestamp.now(),
       };
 
-      db.collection("barber")
+      db.collection(`bento/${env}/barber`)
         .orderBy("timestamp")
         .get()
         .then(async(snapshot) => {
           let count = snapshot?.docs?.length;
-          const set1 =  db.collection("barber")
+          const set1 =  db.collection(`bento/${env}/barber`)
             .doc(req.params.userId)
             .set({
               ...barberData,
               queue_no: count + 1,
-              token_no: count + 1000,
+              token_no: count + 1001,
             });
-          const set2 = db.collection("globalVariable")
+          const set2 = db.collection(`bento/${env}/globalVariable`)
             .doc("barber")
             .set({
               queue_length: count + 1,
@@ -104,9 +106,12 @@ app.post("/api/order/:userId", async (req, res) => {
       timestamp: Timestamp.now(),
     };
     const docRef = await db
-      .collection(`users/${req.params.userId}/orders`)
+      .collection(`bento/${env}/users/${req.params.userId}/orders`)
       .add(userOrder);
-    await db.collection("todayOrders").doc(docRef.id).set(todayOrder);
+    await db.collection(`bento/${env}/todayOrders`).doc(docRef.id).set({
+      userId: req.params.userId,
+      ...todayOrder
+    });
     res.status(200).json("Order created");
   } catch (err) {
     console.log(err);
@@ -116,24 +121,24 @@ app.post("/api/order/:userId", async (req, res) => {
 
 //Update queue_no
 exports.appointmentDeleted = functions.firestore
-  .document("/barber/{documentId}")
+  .document(`bento/${env}/barber/{documentId}`)
   .onDelete((current, context) => {
     // console.log(current.data());
-    db.collection("barber")
+    db.collection(`bento/${env}/barber`)
       .orderBy("timestamp")
       .get()
       .then(async(snapshot) => {
         let arrayR = snapshot.docs.map((doc) => {
           return { barberId: doc.id, ...doc.data() };
         });
-        await db.collection("globalVariable").doc("barber").set({
+        await db.collection(`bento/${env}/globalVariable`).doc("barber").set({
           queue_length: arrayR.length,
         });
         // console.log(arrayR.length);
         for (let appointment of arrayR) {
           if (appointment.queue_no > current.data().queue_no) {
             // console.log(appointment.name)
-            db.doc(`/barber/${appointment.barberId}`).set(
+            db.doc(`bento/${env}/barber/${appointment.barberId}`).set(
               {
                 queue_no: appointment.queue_no - 1,
               },
@@ -147,12 +152,12 @@ exports.appointmentDeleted = functions.firestore
 
 //Send Push Notification
 exports.pushNotification = functions.firestore
-  .document("/barber/{documentId}")
+  .document(`/bento/${env}/barber/{documentId}`)
   .onWrite(async (change, context) => {
     try {
       //get all appointments
       const appointments = await db
-        .collection("barber")
+        .collection(`bento/${env}/barber`)
         .orderBy("timestamp")
         .get();
       const count = appointments.docs.length;
