@@ -57,6 +57,20 @@ exports.appointmentDeleted = functions.firestore
     return Promise.resolve();
   });
 
+//UPDATE SERVICE STATUS
+app.put(`/api/service/status/:uid`, async (req, res) => {
+  try {
+    await db
+      .collection(`bento/${env}/status`)
+      .doc(req.params.uid)
+      .set({ ...req.body });
+    res.status(200).json("status updated successfully");
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
+});
+
 //SEND BARBER PUSH NOTIFICATION
 exports.barberNotification = functions.firestore
   .document(`/bento/${env}/barber/{documentId}`)
@@ -118,7 +132,7 @@ exports.snackmenNotification = functions.firestore
       };
       const options = {
         priority: "high",
-        contentAvailable:true
+        contentAvailable: true,
       };
       return messaging.sendToDevice(newValue.fcmToken, payload, options);
     } else {

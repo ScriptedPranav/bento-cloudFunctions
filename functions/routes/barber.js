@@ -58,26 +58,6 @@ router.post("/book/:userId", async (req, res) => {
   }
 });
 
-//UPDATE BARBER SERVICE STATUS
-router.put("/status/:uid", async (req, res) => {
-  try {
-    const { isOpen, onBreak } = req.body;
-    await db
-      .collection(`bento/${env}/status`)
-      .doc(req.params.uid)
-      .set(
-        {
-          status: `${isOpen ? (onBreak ? "BREAK" : "OPEN") : "CLOSED"}`,
-        },
-        { merge: true }
-      );
-      res.status(200).json('barber status update successful')
-  } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
-  }
-});
-
 //DELETE BARBER BOOKING
 router.delete("/delete/:bookingId", async (req, res) => {
   try {
@@ -85,7 +65,7 @@ router.delete("/delete/:bookingId", async (req, res) => {
       .collection(`bento/${env}/barber`)
       .doc(req.params.bookingId)
       .delete();
-      res.status(200).json('booking deleted')
+    res.status(200).json("booking deleted");
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
