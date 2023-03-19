@@ -71,6 +71,7 @@ router.put("/status/:uid", async (req, res) => {
         },
         { merge: true }
       );
+      res.status(200).json('barber status update successful')
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
@@ -84,6 +85,7 @@ router.delete("/delete/:bookingId", async (req, res) => {
       .collection(`bento/${env}/barber`)
       .doc(req.params.bookingId)
       .delete();
+      res.status(200).json('booking deleted')
   } catch (err) {
     console.log(err);
     res.status(500).json(err);

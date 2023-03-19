@@ -78,6 +78,7 @@ router.get("/delivery", async (req, res) => {
         { merge: true }
       );
     await Promise.all([deletion, setter]);
+    res.status(200).json('delivered set to true')
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
@@ -88,6 +89,7 @@ router.get("/delivery", async (req, res) => {
 router.post("/item/add/", async (req, res) => {
   try {
     await db.collection(`bento/${env}/food`).add({ ...req.body });
+    res.status(200).json('new item added')
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
@@ -98,6 +100,7 @@ router.post("/item/add/", async (req, res) => {
 router.delete("/item/delete/:itemId", async (req, res) => {
   try {
     await db.collection(`bento/${env}/food`).doc(req.params.itemId).delete();
+    res.status(200).json('item deleted')
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
@@ -116,6 +119,7 @@ router.put("/item/update/:itemId", async (req, res) => {
         },
         { merge: true }
       );
+      res.status(200).json('item deleted')
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
