@@ -112,8 +112,8 @@ exports.snackmenNotification = functions.firestore
     ) {
       const payload = {
         notification: {
-          title: "Order Delivered",
-          body: "Your order has been delivered!",
+          title: "Your order has been delivered 🚚",
+          body: "Thank you for ordering from Snackmen 😋",
         },
       };
       const options = {

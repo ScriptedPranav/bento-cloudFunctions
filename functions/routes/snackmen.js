@@ -85,7 +85,7 @@ router.get("/delivery", async (req, res) => {
 });
 
 //SNACKMEN ADD NEW ITEM
-router.post("/api/snackmen/item/add/", async (req, res) => {
+router.post("/item/add/", async (req, res) => {
   try {
     await db.collection(`bento/${env}/food`).add({ ...req.body });
   } catch (err) {
@@ -95,7 +95,7 @@ router.post("/api/snackmen/item/add/", async (req, res) => {
 });
 
 //SNACKMEN DELETE ITEM
-router.delete("/api/snackmen/item/delete/:itemId", async (req, res) => {
+router.delete("/item/delete/:itemId", async (req, res) => {
   try {
     await db.collection(`bento/${env}/food`).doc(req.params.itemId).delete();
   } catch (err) {
@@ -105,7 +105,7 @@ router.delete("/api/snackmen/item/delete/:itemId", async (req, res) => {
 });
 
 //SNACKMEN UPDATE ITEM
-router.put("/api/snackmen/item/update/:itemId", async (req, res) => {
+router.put("/item/update/:itemId", async (req, res) => {
   try {
     await db
       .collection(`bento/${env}/food`)
