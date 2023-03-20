@@ -8,9 +8,9 @@ const env = "dev";
 //SNACKMEN ORDER FOOD
 router.post("/order/:userId", async (req, res) => {
   try {
-    const { name, fcmToken, ...rest } = req.body;
+    const { name, fcm_token, ...rest } = req.body;
     const userOrder = {
-      fcmToken,
+      fcm_token : fcm_token ? fcm_token : null,
       ...rest,
       is_delivered: false,
       timestamp: Timestamp.now(),

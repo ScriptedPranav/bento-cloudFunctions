@@ -28,33 +28,27 @@ app.use("/api/snackmen", snackmenRoute);
 
 //UPDATE QUEUE_NO
 exports.appointmentDeleted = functions.firestore
-  .document(`bento/${env}/barber/{documentId}`)
-  .onDelete((current, context) => {
-    // console.log(current.data());
-    db.collection(`bento/${env}/barber`)
-      .orderBy("timestamp")
-      .get()
-      .then(async (snapshot) => {
-        let arrayR = snapshot.docs.map((doc) => {
-          return { barberId: doc.id, ...doc.data() };
-        });
-        await db.collection(`bento/${env}/globalVariable`).doc("barber").set({
-          queue_length: arrayR.length,
-        });
-        // console.log(arrayR.length);
-        for (let appointment of arrayR) {
-          if (appointment.queue_no > current.data().queue_no) {
-            // console.log(appointment.name)
-            db.doc(`bento/${env}/barber/${appointment.barberId}`).set(
-              {
-                queue_no: appointment.queue_no - 1,
-              },
-              { merge: true }
-            );
-          }
-        }
+  .document(`bento/${env}/barber/{appointmetId}`)
+  .onDelete(async (current, context) => {
+    try {
+      await db
+        .collection(`bento/${env}/globalVariable`)
+        .doc("barber")
+        .update({ queue_length: admin.firestore.FieldValue.increment(-1) });
+      const appointments = await db
+        .collection(`bento/${env}/barber`)
+        .where("queue_no", ">", current.data().queue_no)
+        .get();
+      const promises = appointments?.docs?.map((appointment) => {
+        return db
+          .collection(`bento/${env}/barber`)
+          .doc(appointment.id)
+          .update({ queue_no: admin.firestore.FieldValue.increment(-1) });
       });
-    return Promise.resolve();
+      await Promise.all(promises);
+    } catch (err) {
+      console.log(err);
+    }
   });
 
 //UPDATE SERVICE STATUS
@@ -63,7 +57,7 @@ app.put(`/api/service/status/:uid`, async (req, res) => {
     await db
       .collection(`bento/${env}/status`)
       .doc(req.params.uid)
-      .set({ ...req.body });
+      .set({ ...req.body }, { merge: true });
     res.status(200).json("status updated successfully");
   } catch (err) {
     console.log(err);
@@ -80,12 +74,13 @@ exports.barberNotification = functions.firestore
       const appointments = await db
         .collection(`bento/${env}/barber`)
         .orderBy("timestamp")
+        .limit(3)
         .get();
       const count = appointments.docs.length;
 
       if (count > 0) {
         //generate payload and fcmTokens
-        const firstFour = appointments.docs.slice(0, 4);
+        const firstThree = appointments.docs;
         const fcmTokens = [];
         const payload = {
           notification: {
@@ -98,9 +93,11 @@ exports.barberNotification = functions.firestore
           contentAvailable: true,
         };
         //push fcm tokens
-        firstFour.map((appointment) => {
-          const { fcmToken } = appointment.data();
-          fcmTokens.push(fcmToken);
+        firstThree.map((appointment) => {
+          const { fcm_token } = appointment.data();
+          if (fcm_token) {
+            fcmTokens.push(fcm_token);
+          }
         });
         //send multicast message
         messaging
@@ -122,7 +119,8 @@ exports.snackmenNotification = functions.firestore
     const previousValue = change.before.data();
     if (
       newValue.is_delivered === true &&
-      previousValue.is_delivered === false
+      previousValue.is_delivered === false &&
+      previousValue.fcm_token !== null
     ) {
       const payload = {
         notification: {
@@ -134,7 +132,7 @@ exports.snackmenNotification = functions.firestore
         priority: "high",
         contentAvailable: true,
       };
-      return messaging.sendToDevice(newValue.fcmToken, payload, options);
+      return messaging.sendToDevice(newValue.fcm_token, payload, options);
     } else {
       return null;
     }
