@@ -8,31 +8,59 @@ const env = "dev";
 //SNACKMEN ORDER FOOD
 router.post("/order/:userId", async (req, res) => {
   try {
+    const items = req.body.cart;
+    const promises = [];
+    items.forEach((item) => {
+      promises.push(db.collection(`bento/${env}/food`).doc(item.id).get());
+    });
+
+    const snapshots = await Promise.all(promises);
+    let updates = [];
+    snapshots.forEach((snapshot, index) => {
+      const item = snapshot.data();
+      if (item.qty < items[index].qty) {
+        return;
+      }
+      updates.push({ snapshotId: snapshot.id, decrement: items[index].qty });
+    });
+    if (snapshots.length !== updates.length) {
+      console.log("Not enough items available");
+      res.status(400).json("Not enough items available");
+      return;
+    }
+    updates.forEach((update) =>
+      db
+        .collection(`bento/${env}/food`)
+        .doc(update.snapshotId)
+        .update({
+          qty: admin.firestore.FieldValue.increment(-update.decrement),
+        })
+    );
+
     const { name, fcm_token, ...rest } = req.body;
     const userOrder = {
-      fcm_token : fcm_token ? fcm_token : null,
+      fcm_token: fcm_token ? fcm_token : null,
       ...rest,
       is_delivered: false,
       timestamp: Timestamp.now(),
     };
-
     const todayOrder = {
       name,
       ...rest,
       is_delivered: false,
       timestamp: Timestamp.now(),
     };
-    const docRef = await db
+    const ref = await db
       .collection(`bento/${env}/users/${req.params.userId}/orders`)
       .add(userOrder);
     await db
       .collection(`bento/${env}/todayOrders`)
-      .doc(docRef.id)
+      .doc(ref.id)
       .set({
         userId: req.params.userId,
         ...todayOrder,
       });
-    res.status(200).json("Order created");
+    res.status(200).json("Order created successfully");
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
