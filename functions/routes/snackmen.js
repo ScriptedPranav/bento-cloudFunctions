@@ -3,7 +3,7 @@ const admin = require("firebase-admin");
 const db = admin.firestore();
 const { Timestamp } = require("firebase-admin/firestore");
 
-const env = "dev"
+const env = "dev";
 
 //SNACKMEN ORDER FOOD
 router.post("/order/:userId", async (req, res) => {
@@ -61,6 +61,25 @@ router.post("/order/:userId", async (req, res) => {
         ...todayOrder,
       });
     res.status(200).json("Order created successfully");
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
+});
+
+//SNACKMEN CANCEL USER ORDER
+router.delete("/order/delete", async (req, res) => {
+  try {
+    const { userId, orderId } = req.query;
+    const delete1 = db
+      .doc(`bento/${env}/users/${userId}/orders/${orderId}`)
+      .delete();
+    const delete2 = db
+      .collection(`bento/${env}/todayOrders`)
+      .doc(orderId)
+      .delete();
+    await Promise.all([delete1, delete2]);
+    res.status(200).json("order deleted")
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
