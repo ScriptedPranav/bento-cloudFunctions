@@ -8,7 +8,7 @@ const userRoute = require("./routes/user.js");
 const barberRoute = require("./routes/barber.js");
 const snackmenRoute = require("./routes/snackmen.js");
 
-const env = "prod";
+const env = "prod"
 
 const express = require("express");
 const cors = require("cors");
