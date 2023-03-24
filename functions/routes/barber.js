@@ -1,10 +1,9 @@
 const router = require("express").Router();
 const admin = require("firebase-admin");
 const db = admin.firestore();
-const batch = db.batch();
 const { Timestamp } = require("firebase-admin/firestore");
 
-const env = "dev";
+const env = "prod";
 
 //BOOK BARBER
 router.post("/book/:userId", async (req, res) => {
