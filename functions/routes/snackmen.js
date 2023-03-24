@@ -3,7 +3,7 @@ const admin = require("firebase-admin");
 const db = admin.firestore();
 const { Timestamp } = require("firebase-admin/firestore");
 
-const env = "dev";
+const env = "dev"
 
 //SNACKMEN ORDER FOOD
 router.post("/order/:userId", async (req, res) => {
