@@ -67,6 +67,25 @@ router.post("/order/:userId", async (req, res) => {
   }
 });
 
+//SNACKMEN CANCEL USER ORDER
+router.delete("/order/delete", async (req, res) => {
+  try {
+    const { userId, orderId } = req.query;
+    const delete1 = db
+      .doc(`bento/${env}/users/${userId}/orders/${orderId}`)
+      .delete();
+    const delete2 = db
+      .collection(`bento/${env}/todayOrders`)
+      .doc(orderId)
+      .delete();
+    await Promise.all([delete1, delete2]);
+    res.status(200).json('order cancelled')
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
+});
+
 //SNACKMEN SET DELIVERED ORDER
 router.get("/delivery", async (req, res) => {
   try {

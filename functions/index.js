@@ -12,19 +12,19 @@ const env = "prod"
 
 const express = require("express");
 const cors = require("cors");
-const app = express();
+const appProd = express();
 
-app.use(cors({ origin: true }));
-app.use(express.json());
+appProd.use(cors({ origin: true }));
+appProd.use(express.json());
 
 //USER ROUTE
-app.use("/api/user", userRoute);
+appProd.use("/api/user", userRoute);
 
 //BARBER ROUTE
-app.use("/api/barber", barberRoute);
+appProd.use("/api/barber", barberRoute);
 
 //SNACKMEN ROUTE
-app.use("/api/snackmen", snackmenRoute);
+appProd.use("/api/snackmen", snackmenRoute);
 
 //UPDATE QUEUE_NO
 exports.appointmentDeletedProd = functions.firestore
@@ -52,7 +52,7 @@ exports.appointmentDeletedProd = functions.firestore
   });
 
 //UPDATE SERVICE STATUS
-app.put(`/api/service/status/:uid`, async (req, res) => {
+appProd.put(`/api/service/status/:uid`, async (req, res) => {
   try {
     await db
       .collection(`bento/${env}/status`)
@@ -138,4 +138,4 @@ exports.snackmenNotificationProd = functions.firestore
     }
   });
 
-exports.appProd = functions.https.onRequest(app);
+exports.appProd = functions.https.onRequest(appProd);
