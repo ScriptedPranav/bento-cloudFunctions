@@ -27,7 +27,7 @@ app.use("/api/barber", barberRoute);
 app.use("/api/snackmen", snackmenRoute);
 
 //UPDATE QUEUE_NO
-exports.appointmentDeleted = functions.firestore
+exports.appointmentDeletedProd = functions.firestore
   .document(`bento/${env}/barber/{appointmetId}`)
   .onDelete(async (current, context) => {
     try {
@@ -66,7 +66,7 @@ app.put(`/api/service/status/:uid`, async (req, res) => {
 });
 
 //SEND BARBER PUSH NOTIFICATION
-exports.barberNotification = functions.firestore
+exports.barberNotificationProd = functions.firestore
   .document(`/bento/${env}/barber/{documentId}`)
   .onWrite(async (change, context) => {
     try {
@@ -112,7 +112,7 @@ exports.barberNotification = functions.firestore
   });
 
 //SEND SNACKMEN NOTIFICATION
-exports.snackmenNotification = functions.firestore
+exports.snackmenNotificationProd = functions.firestore
   .document(`/bento/${env}/users/{userId}/orders/{orderId}`)
   .onUpdate((change, context) => {
     const newValue = change.after.data();
@@ -138,4 +138,4 @@ exports.snackmenNotification = functions.firestore
     }
   });
 
-exports.app = functions.https.onRequest(app);
+exports.appProd = functions.https.onRequest(app);
